@@ -172,7 +172,7 @@ const deleteSensor = asyncHandler(async (req, res) => {
         success: true,
         message: 'Sensor data deleted successfully',
     });
-})
+});
 
 const getLocations = asyncHandler(async (req, res) => {
     const locations = await prisma.location.findMany({
