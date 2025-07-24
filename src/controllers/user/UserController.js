@@ -140,4 +140,17 @@ const updateUser = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllUser, getUserById, createUser, updateUser };
+const deleteUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    await prisma.user.delete({
+        where: { id },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+    });
+})
+
+module.exports = { getAllUser, getUserById, createUser, updateUser, deleteUser };
