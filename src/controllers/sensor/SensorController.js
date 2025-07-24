@@ -1,7 +1,6 @@
 const express = require("express");
 const prisma = require("../../../prisma/client");
 const asyncHandler = require('../../utils/handlers/asyncHandler');
-const validationResult = require("express-validator").validationResult;
 
 const getAllSensor = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -11,33 +10,34 @@ const getAllSensor = asyncHandler(async (req, res) => {
 
     const whereCondition = {
         OR: [
-            { location: { contains: search, mode: 'insensitive' } },
-            { parameter: { contains: search, mode: 'insensitive' } }
+            { location: { name: { contains: search, mode: 'insensitive' } } },
+            { parameter: { name: { contains: search, mode: 'insensitive' } } },
         ]
-    }
+    };
 
-    const totalData = await prisma.environmentSensor.count({ where: whereCondition })
+    const totalData = await prisma.environmentSensor.count({ where: whereCondition });
 
     const sensors = await prisma.environmentSensor.findMany({
         where: whereCondition,
         skip,
         take: limit,
-        select: {
-            id: true,
+        include: {
             location: true,
             parameter: true,
-            value: true,
-            unit: true,
-            recordedAt: true,
-            createdAt: true,
-            updatedAt: true,
         },
-        orderBy: { location: "asc" }
-    })
+        orderBy: { recordedAt: "desc" },
+    });
 
     const sensorsWithNo = sensors.map((sensor, index) => ({
         no: skip + index + 1,
-        ...sensor
+        id: sensor.id,
+        location: sensor.location.name,
+        parameter: sensor.parameter.name,
+        unit: sensor.parameter.unit,
+        value: sensor.value,
+        recordedAt: sensor.recordedAt,
+        createdAt: sensor.createdAt,
+        updatedAt: sensor.updatedAt,
     }));
 
     res.status(200).json({
@@ -48,23 +48,14 @@ const getAllSensor = asyncHandler(async (req, res) => {
         totalPages: Math.ceil(totalData / limit),
         data: sensorsWithNo,
     });
-})
+});
 
 const getSensorById = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     const sensor = await prisma.environmentSensor.findUnique({
         where: { id: parseInt(id) },
-        select: {
-            id: true,
-            location: true,
-            parameter: true,
-            value: true,
-            unit: true,
-            recordedAt: true,
-            createdAt: true,
-            updatedAt: true,
-        }
+        include: { location: true, parameter: true }
     });
 
     if (!sensor) {
@@ -77,51 +68,98 @@ const getSensorById = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Get sensor successfully',
-        data: sensor,
+        data: {
+            id: sensor.id,
+            location: sensor.location.name,
+            parameter: sensor.parameter.name,
+            unit: sensor.parameter.unit,
+            value: sensor.value,
+            recordedAt: sensor.recordedAt,
+            createdAt: sensor.createdAt,
+            updatedAt: sensor.updatedAt,
+        },
     });
-})
+});
 
 const createSensor = asyncHandler(async (req, res) => {
-    const { location, parameter, value, unit, recordedAt } = req.body;
+    const { locationId, parameterId, value, recordedAt } = req.body;
+
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    const parameter = await prisma.parameter.findUnique({ where: { id: parameterId } });
+
+    if (!location || !parameter) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid locationId or parameterId",
+        });
+    }
 
     const sensor = await prisma.environmentSensor.create({
         data: {
-            location,
-            parameter,
+            locationId,
+            parameterId,
             value: parseFloat(value),
-            unit,
             recordedAt: new Date(recordedAt),
-        }
+        },
+        include: { location: true, parameter: true },
     });
 
     res.status(201).json({
         success: true,
         message: 'Sensor data created successfully',
-        data: sensor,
+        data: {
+            id: sensor.id,
+            location: sensor.location.name,
+            parameter: sensor.parameter.name,
+            unit: sensor.parameter.unit,
+            value: sensor.value,
+            recordedAt: sensor.recordedAt,
+            createdAt: sensor.createdAt,
+            updatedAt: sensor.updatedAt,
+        }
     });
 })
 
 const updateSensor = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { location, parameter, value, unit, recordedAt } = req.body;
+    const { locationId, parameterId, value, recordedAt } = req.body;
+
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    const parameter = await prisma.parameter.findUnique({ where: { id: parameterId } });
+
+    if (!location || !parameter) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid locationId or parameterId",
+        });
+    }
 
     const sensor = await prisma.environmentSensor.update({
         where: { id: parseInt(id) },
         data: {
-            location,
-            parameter,
+            locationId,
+            parameterId,
             value: parseFloat(value),
-            unit,
             recordedAt: new Date(recordedAt),
         },
-    })
+        include: { location: true, parameter: true }
+    });
 
     res.status(200).json({
         success: true,
         message: 'Sensor data updated successfully',
-        data: sensor,
+        data: {
+            id: sensor.id,
+            location: sensor.location.name,
+            parameter: sensor.parameter.name,
+            unit: sensor.parameter.unit,
+            value: sensor.value,
+            recordedAt: sensor.recordedAt,
+            createdAt: sensor.createdAt,
+            updatedAt: sensor.updatedAt,
+        }
     });
-})
+});
 
 const deleteSensor = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -134,6 +172,30 @@ const deleteSensor = asyncHandler(async (req, res) => {
         success: true,
         message: 'Sensor data deleted successfully',
     });
-})
+});
 
-module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor }
+const getLocations = asyncHandler(async (req, res) => {
+    const locations = await prisma.location.findMany({
+        orderBy: { name: 'asc' },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Get all locations",
+        data: locations,
+    });
+});
+
+const getParameters = asyncHandler(async (req, res) => {
+    const parameters = await prisma.parameter.findMany({
+        orderBy: { id: 'asc' },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Get all parameters",
+        data: parameters,
+    });
+});
+
+module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations, getParameters }
