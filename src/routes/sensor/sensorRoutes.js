@@ -1,0 +1,10 @@
+const express = require("express");
+const router = express.Router();
+
+const { getAllSensor } = require("../../controllers/sensor/SensorController");
+const { validateSensor } = require('../../utils/validators/sensor/sensor')
+const verifyToken = require("../../middlewares/auth/auth");
+
+router.get("/all", verifyToken, getAllSensor);
+
+module.exports = router;
