@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations } = require("../../controllers/sensor/SensorController");
+const { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations, getParameters } = require("../../controllers/sensor/SensorController");
 const { validateSensor } = require('../../utils/validators/sensor/sensor')
 const verifyToken = require("../../middlewares/auth/auth");
 
 router.get("/all", verifyToken, getAllSensor);
 router.get("/locations", verifyToken, getLocations);
+router.get("/parameters", verifyToken, getParameters);
 router.get("/:id", verifyToken, getSensorById);
 router.post("/create", verifyToken, validateSensor, createSensor);
 router.put("/update/:id", verifyToken, validateSensor, updateSensor)

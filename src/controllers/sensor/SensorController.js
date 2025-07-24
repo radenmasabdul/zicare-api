@@ -147,4 +147,16 @@ const getLocations = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations }
+const getParameters = asyncHandler(async (req, res) => {
+    const parameters = await prisma.parameter.findMany({
+        orderBy: { id: 'asc' },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Get all parameters",
+        data: parameters,
+    });
+});
+
+module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations, getParameters }
