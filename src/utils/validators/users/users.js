@@ -17,7 +17,7 @@ const validateUser = [
                 }
             });
 
-            if (user && user.id !== Number(req.params.id)) {
+            if (user && user.id !== req.params.id) {
                 throw new Error('Email already exists');
             }
             return true;
