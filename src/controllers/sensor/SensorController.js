@@ -101,4 +101,26 @@ const createSensor = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllSensor, getSensorById, createSensor }
+const updateSensor = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { location, parameter, value, unit, recordedAt } = req.body;
+
+    const sensor = await prisma.environmentSensor.update({
+        where: { id: parseInt(id) },
+        data: {
+            location,
+            parameter,
+            value: parseFloat(value),
+            unit,
+            recordedAt: new Date(recordedAt),
+        },
+    })
+
+    res.status(200).json({
+        success: true,
+        message: 'Sensor data updated successfully',
+        data: sensor,
+    });
+})
+
+module.exports = { getAllSensor, getSensorById, createSensor, updateSensor }
