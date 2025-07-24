@@ -10,33 +10,34 @@ const getAllSensor = asyncHandler(async (req, res) => {
 
     const whereCondition = {
         OR: [
-            { location: { contains: search, mode: 'insensitive' } },
-            { parameter: { contains: search, mode: 'insensitive' } }
+            { location: { name: { contains: search, mode: 'insensitive' } } },
+            { parameter: { name: { contains: search, mode: 'insensitive' } } },
         ]
-    }
+    };
 
-    const totalData = await prisma.environmentSensor.count({ where: whereCondition })
+    const totalData = await prisma.environmentSensor.count({ where: whereCondition });
 
     const sensors = await prisma.environmentSensor.findMany({
         where: whereCondition,
         skip,
         take: limit,
-        select: {
-            id: true,
+        include: {
             location: true,
             parameter: true,
-            value: true,
-            unit: true,
-            recordedAt: true,
-            createdAt: true,
-            updatedAt: true,
         },
-        orderBy: { location: "asc" }
-    })
+        orderBy: { recordedAt: "desc" },
+    });
 
     const sensorsWithNo = sensors.map((sensor, index) => ({
         no: skip + index + 1,
-        ...sensor
+        id: sensor.id,
+        location: sensor.location.name,
+        parameter: sensor.parameter.name,
+        unit: sensor.parameter.unit,
+        value: sensor.value,
+        recordedAt: sensor.recordedAt,
+        createdAt: sensor.createdAt,
+        updatedAt: sensor.updatedAt,
     }));
 
     res.status(200).json({
@@ -47,7 +48,7 @@ const getAllSensor = asyncHandler(async (req, res) => {
         totalPages: Math.ceil(totalData / limit),
         data: sensorsWithNo,
     });
-})
+});
 
 const getSensorById = asyncHandler(async (req, res) => {
     const { id } = req.params;
