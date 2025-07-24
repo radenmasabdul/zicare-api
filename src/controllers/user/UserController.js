@@ -30,7 +30,7 @@ const getAllUser = asyncHandler(async (req, res) => {
             createdAt: true,
             updatedAt: true,
         },
-        orderBy: { createdAt: "desc" }
+        orderBy: { createdAt: "asc" }
     });
 
     const usersWithNo = users.map((user, index) => ({
@@ -105,4 +105,39 @@ const createUser = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllUser, getUserById, createUser };
+const updateUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            success: false,
+            message: "Validation error",
+            errors: errors.array(),
+        });
+    }
+
+    let updateData = {
+        name: req.body.name,
+        email: req.body.email,
+    };
+
+    if (req.body.password) {
+        updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const user = await prisma.user.update({
+        where: { id },
+        data: updateData,
+    });
+
+    const { password, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+        data: userWithoutPassword,
+    });
+})
+
+module.exports = { getAllUser, getUserById, createUser, updateUser };
