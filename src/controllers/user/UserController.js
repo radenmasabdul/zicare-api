@@ -46,4 +46,32 @@ const getAllUser = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllUser }
+const getUserById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            updatedAt: true,
+        }
+    });
+
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: "User not found",
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Get user successfully",
+        data: user,
+    });
+})
+
+module.exports = { getAllUser, getUserById }
