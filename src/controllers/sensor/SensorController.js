@@ -50,6 +50,37 @@ const getAllSensor = asyncHandler(async (req, res) => {
     });
 })
 
+const getSensorById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const sensor = await prisma.environmentSensor.findUnique({
+        where: { id: parseInt(id) },
+        select: {
+            id: true,
+            location: true,
+            parameter: true,
+            value: true,
+            unit: true,
+            recordedAt: true,
+            createdAt: true,
+            updatedAt: true,
+        }
+    });
+
+    if (!sensor) {
+        return res.status(404).json({
+            success: false,
+            message: "Sensor data not found",
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        message: 'Get sensor successfully',
+        data: sensor,
+    });
+})
+
 const createSensor = asyncHandler(async (req, res) => {
     const { location, parameter, value, unit, recordedAt } = req.body;
 
@@ -70,4 +101,4 @@ const createSensor = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllSensor, createSensor }
+module.exports = { getAllSensor, getSensorById, createSensor }
