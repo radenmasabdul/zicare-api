@@ -22,13 +22,28 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Location {
+  id       Int                 @id @default(autoincrement())
+  name     String              @unique
+  sensors  EnvironmentSensor[]
+}
+
+model Parameter {
+  id       Int                 @id @default(autoincrement())
+  name     String              @unique
+  unit     String
+  sensors  EnvironmentSensor[]
+}
+
 model EnvironmentSensor {
-  id        Int      @id @default(autoincrement())
-  location  String
-  parameter String
-  value     Float
-  unit       String
-  recordedAt DateTime @default(now())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int        @id @default(autoincrement())
+  locationId  Int
+  parameterId Int
+  value       Float
+  recordedAt  DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  location    Location   @relation(fields: [locationId], references: [id])
+  parameter   Parameter  @relation(fields: [parameterId], references: [id])
 }
