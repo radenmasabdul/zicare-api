@@ -123,4 +123,17 @@ const updateSensor = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllSensor, getSensorById, createSensor, updateSensor }
+const deleteSensor = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    await prisma.environmentSensor.delete({
+        where: { id: parseInt(id) },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: 'Sensor data deleted successfully',
+    });
+})
+
+module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor }
