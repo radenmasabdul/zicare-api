@@ -1,7 +1,6 @@
 const express = require("express");
 const prisma = require("../../../prisma/client");
 const asyncHandler = require('../../utils/handlers/asyncHandler');
-const validationResult = require("express-validator").validationResult;
 
 const getAllSensor = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -136,4 +135,16 @@ const deleteSensor = asyncHandler(async (req, res) => {
     });
 })
 
-module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor }
+const getLocations = asyncHandler(async (req, res) => {
+    const locations = await prisma.location.findMany({
+        orderBy: { name: 'asc' },
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Get all locations",
+        data: locations,
+    });
+});
+
+module.exports = { getAllSensor, getSensorById, createSensor, updateSensor, deleteSensor, getLocations }
