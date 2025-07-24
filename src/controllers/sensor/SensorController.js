@@ -32,7 +32,7 @@ const getAllSensor = asyncHandler(async (req, res) => {
             createdAt: true,
             updatedAt: true,
         },
-        orderBy: { createdAt: "desc" }
+        orderBy: { location: "asc" }
     })
 
     const sensorsWithNo = sensors.map((sensor, index) => ({
