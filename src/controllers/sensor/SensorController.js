@@ -81,22 +81,41 @@ const getSensorById = asyncHandler(async (req, res) => {
 })
 
 const createSensor = asyncHandler(async (req, res) => {
-    const { location, parameter, value, unit, recordedAt } = req.body;
+    const { locationId, parameterId, value, recordedAt } = req.body;
+
+    const location = await prisma.location.findUnique({ where: { id: locationId } });
+    const parameter = await prisma.parameter.findUnique({ where: { id: parameterId } });
+
+    if (!location || !parameter) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid locationId or parameterId",
+        });
+    }
 
     const sensor = await prisma.environmentSensor.create({
         data: {
-            location,
-            parameter,
+            locationId,
+            parameterId,
             value: parseFloat(value),
-            unit,
             recordedAt: new Date(recordedAt),
-        }
+        },
+        include: { location: true, parameter: true },
     });
 
     res.status(201).json({
         success: true,
         message: 'Sensor data created successfully',
-        data: sensor,
+        data: {
+            id: sensor.id,
+            location: sensor.location.name,
+            parameter: sensor.parameter.name,
+            unit: sensor.parameter.unit,
+            value: sensor.value,
+            recordedAt: sensor.recordedAt,
+            createdAt: sensor.createdAt,
+            updatedAt: sensor.updatedAt,
+        }
     });
 })
 
