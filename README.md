@@ -74,7 +74,10 @@ zicare-api/
 
 ## 📌 API Reference
 
-Semua endpoint diawali dengan: http://localhost:3000/api
+Semua endpoint lokal diawali dengan: 
+```
+http://localhost:3000/api
+```
 
 #### 🔐 Register
 
